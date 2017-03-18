@@ -19,45 +19,44 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', explai
 
     # plot result
     import matplotlib.pyplot as plt
-    #from mpl_toolkits.axes_grid1 import host_subplot
-    #import mpl_toolkits.axisartist as AA
     if explain:
-        fig, (ax2, ax) = plt.subplots(2, 1)
-        fig.set_size_inches(8, 7)
+        fig, (ax1, ax2, axh, ax3, ax) = plt.subplots(5, 1)#, sharex=True)
+        fig.set_size_inches(7, 16)
 
-        #ax1.set_ylabel("Cumulative failures")
-        #ax1.set_xlim(-2e3, 62e3)
-        #ax1.set_ylim(0, 4800)
-        #ax1.plot(xs, f_ys, 'b-')
+        ax1.set_ylabel("Cumulative failures")
+        ax1.set_xlabel("Power-on hours")
+        ax1.set_ylim(0, 4800)
+        ax1.plot(xs, f_ys, 'b-')
 
-        ax2.set_ylabel("Derivative of cumulative failures (#/hr)")
+        ax2.set_ylabel("Derivative of cumulative failures")
         ax2.set_xlabel("Power-on hours")
         ax2.set_yscale("log")
         ax2.set_ylim(1e-4, 1)
         ax2.plot(xs, f_dydxs, 'r-')
 
-        ax3 = ax2.twinx()
-        ax3.set_ylabel("Number of disks under observation")
+        axh.set_ylabel("# disks under observation")
+        axh.set_xlabel("Power-on hours")
+        axh.set_ylim(0, 4)
+        axh.set_xlim(-2e3, 62e3)
+        axh.fill_between([0, 1e4, 1e4, 2e4, 2e4,
+                          4e4, 4e4, 45e3, 45e3, 5e4, 5e4, 55e3, 55e3],
+                         [0, 0, 1, 1, 0,
+                          0, 1, 1, 2, 2, 1, 1, 0], color='#0766aa33')
+
+        ax3.set_ylabel("# disks under observation")
+        ax3.set_xlabel("Power-on hours")
         ax3.set_yscale("log")
         ax3.set_ylim(90, 1e5)
         ax3.fill_between(xs, o_ys, 90, color='#0766aa33')
-
-        red, blue, nil = '#bb0000', '#11448899', '#00000000'
-        ax2.tick_params(axis='y', colors=red)
-        ax2.spines["left"].set_color(red)
-        ax2.spines["right"].set_color(nil)
-        ax3.tick_params(axis='y', colors=blue)
-        ax3.spines["left"].set_color(nil)
-        ax3.spines["right"].set_color(blue)
     else:
         fig, ax = plt.subplots()
         fig.set_size_inches(8, 4)
 
-    ax.set_xlabel("Power-on years")
-    ax.set_ylabel("Normalized AFR (#/yr)")
+    ax.set_xlabel("Power-on hours")
+    ax.set_ylabel("Failure rate")
     ax.set_yscale("log")
-    ax.set_ylim(1e-3, 2)
-    ax.plot(xs/24/365, fr_ys*24*365)
+    ax.set_ylim(1e-7, 1e-3)
+    ax.plot(xs, fr_ys)
 
     fig.tight_layout()
     fig.savefig(outfile, bbox_inches="tight")

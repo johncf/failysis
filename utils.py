@@ -52,5 +52,5 @@ def failure_rate(cfails, obspop, num_samples=2000, window_size=169, poly_order=3
     # since the same x_lims and num_samples are passed, xs should be equal
     assert np.array_equal(f_xs, o_xs)
 
-    fr_ys = [f_dydx/o_y for (f_dydx, o_y) in zip(f_dydxs, o_ys)]
+    fr_ys = f_dydxs/o_ys # element-wise division
     return f_xs, fr_ys, (f_ys, f_dydxs, o_ys)
