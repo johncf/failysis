@@ -18,27 +18,66 @@ def write_csv(xs, ys, csvfile):
         for row in zip(xs, ys):
             writer.writerow(row)
 
+# calculates the integral of ys over xs for each bin
+def binned_integral(xs, ys, bin_width, samples_per_bin, x_lims=None):
+    x_min, x_max = x_lims if x_lims is not None else xs.min(), xs.max()
+
+    bin_start = np.floor(x_min / bin_width) * bin_width
+    if np.abs(bin_start - x_min) > bin_width:
+        bin_start = x_min
+
+    y_itp = interp1d(xs, ys, kind="linear")
+
+    bins = []
+    num_bins = int(np.ceil((x_max - bin_start) / bin_width))
+    for i in range(num_bins):
+        left = bin_start + bin_width*i
+        right = bin_start + bin_width*(i+1)
+        sample_halfwidth = (right - left) / samples_per_bin / 2
+        xs_new = np.linspace(left + sample_halfwidth, right - sample_halfwidth, num=samples_per_bin)
+        xs_lims_mask = np.logical_and(np.less_equal(left, xs_new), np.less_equal(xs_new, right))
+        ys_new = y_itp(xs_new) * xs_lims_mask.astype(np.float32)
+        bins.push((left, right, np.sum(ys_new) / samples_per_bin))
+    return bins
+
+# calculate y-deltas between the left and right of each bin in a non-decreasing function
+def binned_non_decreasing_delta(xs, ys, bin_width, x_lims=None):
+    x_min, x_max = x_lims if x_lims is not None else xs.min(), xs.max()
+
+    bin_start = np.floor(x_min / bin_width) * bin_width
+    if np.abs(bin_start - x_min) > bin_width:
+        bin_start = x_min
+
+    y_itp = interp1d(xs, ys, kind="linear")
+
+    bins = []
+    num_bins = int(np.ceil((x_max - bin_start) / bin_width))
+    for i in range(num_bins):
+        left = bin_start + bin_width*i
+        right = bin_start + bin_width*(i+1)
+        y_left = y_itp(max(left, x_min))
+        y_right = y_itp(min(right, x_max))
+        bins.push((left, right, y_right - y_left))
+    return bins
+
 def savgol_fit(xs, ys, samples, window_size, poly_order, x_lims=None, dydx=False):
     # linear interpolation function
-    itp_f = interp1d(xs, ys, kind="linear")
+    y_itp = interp1d(xs, ys, kind="linear")
 
-    if x_lims is None:
-        x_min, x_max = xs.min(), xs.max()
-    else:
-        x_min, x_max = x_lims
+    x_min, x_max = x_lims if x_lims is not None else xs.min(), xs.max()
 
     # linearly spaced x values between x_min and x_max
-    xs_lin = np.linspace(x_min, x_max, num=samples)
+    xs_new = np.linspace(x_min, x_max, num=samples)
 
     # smooth
-    ys_sg = savgol_filter(itp_f(xs_lin), window_size, poly_order)
+    ys_sg = savgol_filter(y_itp(xs_new), window_size, poly_order)
     if dydx:
-        dydx_sg = savgol_filter(itp_f(xs_lin), window_size, poly_order, deriv=1)
+        dydx_sg = savgol_filter(y_itp(xs_new), window_size, poly_order, deriv=1)
         dydx_sg /= (x_max - x_min) / samples # correct for x spacing
     else:
         dydx_sg = None
 
-    return xs_lin, ys_sg, dydx_sg
+    return xs_new, ys_sg, dydx_sg
 
 def failure_rate(cfails, obspop, num_samples=2000, window_size=169, poly_order=3):
     cfails_xs, cfails_ys = np.array(cfails[0]), np.array(cfails[1])
