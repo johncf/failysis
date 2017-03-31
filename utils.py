@@ -47,10 +47,10 @@ def binned_integral(xs, ys, bin_width, samples_per_bin, x_lims=None):
         xs_new = np.linspace(left + sample_halfwidth, right - sample_halfwidth, num=samples_per_bin)
         xs_lims_mask = np.logical_and(np.less_equal(x_min, xs_new), np.less_equal(xs_new, x_max))
         xs_lims_mask = xs_lims_mask.astype(np.float32)
-        xs_masked = (xs_new - bin_start - bin_width)*xs_lims_mask + bin_start + bin_width
-        #print(xs_lims_mask, '\n', xs_masked)
-        ys_new = y_itp((xs_masked)*xs_lims_mask + x_min) * xs_lims_mask
-        bins.append((left, right, np.sum(ys_new) / samples_per_bin))
+        dummy_x = bin_start + bin_width # just a valid x for values that'll be masked
+        xs_masked = (xs_new - dummy_x) * xs_lims_mask + dummy_x
+        ys_new = y_itp(xs_masked) * xs_lims_mask
+        bins.append((left, right, np.sum(ys_new) * bin_width / samples_per_bin))
     return bins
 
 # calculate y-deltas between the left and right of each bin in a non-decreasing function

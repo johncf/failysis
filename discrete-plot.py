@@ -3,6 +3,9 @@
 import csv
 from utils import *
 
+bin_width = 0.5
+samples_per_bin = 20 * bin_width
+
 def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     # read input files
     fail_xs, fail_ys = read_csv(cfails_file)
@@ -10,10 +13,9 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
 
     fail_xs /= 24*365
     obs_xs /= 24*365
-    bin_width = 1
     x_lims = shortest_common_limits(fail_xs, obs_xs)
 
-    disk_hours_bins = binned_integral(obs_xs, obs_ys, bin_width, 10, x_lims)
+    disk_hours_bins = binned_integral(obs_xs, obs_ys, bin_width, samples_per_bin, x_lims)
     fails_delta_bins = binned_non_decreasing_delta(fail_xs, fail_ys, bin_width, x_lims)
     disk_hrs_xs, _, disk_hrs_ys = unzip(disk_hours_bins)
     fdelta_xs, _, fdelta_ys = unzip(fails_delta_bins)
@@ -28,18 +30,18 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     #ax1.set_xlim(-2e3, 62e3)
     ax1.set_ylim(0, 4800)
     ax1.plot(fail_xs, fail_ys, color='#cc5511', label='Cumulative')
-    ax1.bar(fdelta_xs, fdelta_ys, width=1, align='edge', color='#cc880088', label='Yearly deltas')
+    ax1.bar(fdelta_xs, fdelta_ys, width=bin_width, align='edge', color='#cc880088', label='Yearly deltas')
     for x, y in zip(fdelta_xs, fdelta_ys):
-        ax1.text(x + 0.5, y, np.round(y).astype(int), ha='center', va='bottom')
+        ax1.text(x + bin_width/2, y, np.round(y).astype(int), ha='center', va='bottom')
     ax1.legend()
 
     ax2.set_ylabel("Number observed")
     ax2.set_yscale("log")
     ax2.set_ylim(90, 1e5)
-    ax2.plot(obs_xs, obs_ys, label='Number of disks under observation')
-    ax2.bar(disk_hrs_xs, disk_hrs_ys, width=1, align='edge', color='#0044ff55', label='Number of disk-years observed')
+    ax2.plot(obs_xs, obs_ys, label='Number of disks observed')
+    ax2.bar(disk_hrs_xs, disk_hrs_ys, width=bin_width, align='edge', color='#0044ff55', label='Number of disk-years observed')
     for x, y in zip(disk_hrs_xs, disk_hrs_ys):
-        ax2.text(x + 0.5, np.exp(np.log(y) + 0.2), np.round(y).astype(int), ha='center', va='bottom')
+        ax2.text(x + bin_width/2, np.exp(np.log(y) + 0.2), np.round(y).astype(int), ha='center', va='bottom')
     ax2.legend()
 
     ax.set_xlabel("Power-on years")
@@ -48,9 +50,9 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     ax.set_ylim(1e-3, 2)
     ax.plot(xs, fr_ys, color='#ff1100')
     fr_discrete_ys = fdelta_ys/disk_hrs_ys
-    ax.bar(disk_hrs_xs, fr_discrete_ys, width=1, align='edge', color='#ff440055')
+    ax.bar(disk_hrs_xs, fr_discrete_ys, width=bin_width, align='edge', color='#ff440055')
     for x, y in zip(disk_hrs_xs, fr_discrete_ys):
-        ax.text(x + 0.5, np.exp(np.log(y) + 0.2), np.round(y, 2).astype(str), ha='center', va='bottom')
+        ax.text(x + bin_width/2, np.exp(np.log(y) + 0.2), np.round(y, 2).astype(str), ha='center', va='bottom')
 
     fig.tight_layout()
     fig.savefig(outfile, bbox_inches="tight")
