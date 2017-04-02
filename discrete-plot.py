@@ -3,7 +3,7 @@
 import csv
 from utils import *
 
-bin_width = 0.5
+bin_width = 1
 samples_per_bin = 20 * bin_width
 bar_fontsize = None
 
@@ -29,11 +29,11 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
 
     # plot result
     import matplotlib.pyplot as plt
-    fig, (ax1, ax2, ax) = plt.subplots(3, 1)
+    fig, (ax1, ax2, ax) = plt.subplots(3, 1, sharex=True)
     fig.set_size_inches(8, 10)
+    ax.set_xlim(-0.25, 7.25)
 
     ax1.set_ylabel("# failures")
-    #ax1.set_xlim(-2e3, 62e3)
     ax1.set_ylim(0, 4800)
     ax1.plot(fail_xs, fail_ys, color='#cc5511', label='Cumulative number of failures')
     bar(ax1, fdelta_xs, fdelta_ys, bin_width, color='#cc880088', label='Number of failures in-between')
@@ -43,7 +43,7 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     ax2.set_yscale("log")
     ax2.set_ylim(90, 1e5)
     ax2.plot(obs_xs, obs_ys, label='Number of disks observed')
-    bar(ax2, disk_hrs_xs, disk_hrs_ys, bin_width, color='#0044ff55', label='Number of disk-years observed')
+    bar(ax2, disk_hrs_xs, disk_hrs_ys, bin_width, color='#0044ff55', label='Disk-years observed')
     ax2.legend()
 
     ax.set_xlabel("Power-on years")
