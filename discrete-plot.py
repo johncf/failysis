@@ -5,6 +5,12 @@ from utils import *
 
 bin_width = 0.5
 samples_per_bin = 20 * bin_width
+bar_fontsize = None
+
+def bar(ax, xs, ys, width, color, label=None, text_f=lambda y: int(np.round(y))):
+    ax.bar(xs, ys, width=width, align='edge', color=color, label=label)
+    for x, y in zip(xs, ys):
+        ax.text(x + width/2, y, text_f(y), ha='center', va='bottom', fontsize=bar_fontsize)
 
 def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     # read input files
@@ -26,33 +32,27 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     fig, (ax1, ax2, ax) = plt.subplots(3, 1)
     fig.set_size_inches(8, 10)
 
-    ax1.set_ylabel("Number of failures")
+    ax1.set_ylabel("# failures")
     #ax1.set_xlim(-2e3, 62e3)
     ax1.set_ylim(0, 4800)
-    ax1.plot(fail_xs, fail_ys, color='#cc5511', label='Cumulative')
-    ax1.bar(fdelta_xs, fdelta_ys, width=bin_width, align='edge', color='#cc880088', label='Yearly deltas')
-    for x, y in zip(fdelta_xs, fdelta_ys):
-        ax1.text(x + bin_width/2, y, np.round(y).astype(int), ha='center', va='bottom')
+    ax1.plot(fail_xs, fail_ys, color='#cc5511', label='Cumulative number of failures')
+    bar(ax1, fdelta_xs, fdelta_ys, bin_width, color='#cc880088', label='Number of failures in-between')
     ax1.legend()
 
-    ax2.set_ylabel("Number observed")
+    ax2.set_ylabel("# observed")
     ax2.set_yscale("log")
     ax2.set_ylim(90, 1e5)
     ax2.plot(obs_xs, obs_ys, label='Number of disks observed')
-    ax2.bar(disk_hrs_xs, disk_hrs_ys, width=bin_width, align='edge', color='#0044ff55', label='Number of disk-years observed')
-    for x, y in zip(disk_hrs_xs, disk_hrs_ys):
-        ax2.text(x + bin_width/2, np.exp(np.log(y) + 0.2), np.round(y).astype(int), ha='center', va='bottom')
+    bar(ax2, disk_hrs_xs, disk_hrs_ys, bin_width, color='#0044ff55', label='Number of disk-years observed')
     ax2.legend()
 
     ax.set_xlabel("Power-on years")
-    ax.set_ylabel("Normalized AFR (#/yr)")
+    ax.set_ylabel("AFR (#/yr)")
     ax.set_yscale("log")
     ax.set_ylim(1e-3, 2)
     ax.plot(xs, fr_ys, color='#ff1100')
     fr_discrete_ys = fdelta_ys/disk_hrs_ys
-    ax.bar(disk_hrs_xs, fr_discrete_ys, width=bin_width, align='edge', color='#ff440055')
-    for x, y in zip(disk_hrs_xs, fr_discrete_ys):
-        ax.text(x + bin_width/2, np.exp(np.log(y) + 0.2), np.round(y, 2).astype(str), ha='center', va='bottom')
+    bar(ax, disk_hrs_xs, fr_discrete_ys, bin_width, color='#ff440055', text_f=lambda y: np.round(y, 2))
 
     fig.tight_layout()
     fig.savefig(outfile, bbox_inches="tight")
