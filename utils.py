@@ -6,7 +6,11 @@ import csv
 def read_csv(csvfile):
     xs, ys = [], []
     with open(csvfile, 'r') as file_:
+        has_header = csv.Sniffer().has_header(file_.read(1024))
+        file_.seek(0)
         reader = csv.reader(file_, delimiter=',')
+        if has_header:
+            next(reader)  # skip header row
         for row in reader:
             xs.append(float(row[0]))
             ys.append(float(row[1]))

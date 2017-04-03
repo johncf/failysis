@@ -34,7 +34,7 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     ax.set_xlim(-0.25, 7.25)
 
     ax1.set_ylabel("# failures")
-    ax1.set_ylim(0, 4800)
+    #ax1.set_ylim(0, 4800)
     ax1.plot(fail_xs, fail_ys, color='#cc5511', label='Cumulative number of failures')
     bar(ax1, fdelta_xs, fdelta_ys, bin_width, color='#cc880088', label='Number of failures in-between')
     ax1.legend()
@@ -52,7 +52,7 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     ax.set_ylim(1e-3, 2)
     ax.plot(xs, fr_ys, color='#ff1100')
     fr_discrete_ys = fdelta_ys/disk_hrs_ys
-    bar(ax, disk_hrs_xs, fr_discrete_ys, bin_width, color='#ff440055', text_f=lambda y: np.round(y, 2))
+    bar(ax, disk_hrs_xs, fr_discrete_ys, bin_width, color='#ff440055', text_f=lambda y: np.round(y, 3))
 
     fig.tight_layout()
     fig.savefig(outfile, bbox_inches="tight")
@@ -66,7 +66,6 @@ if __name__ == '__main__':
     parser.add_argument('cumufails', metavar='CUMUFAILS', help='cumulative failures (csv file)')
     parser.add_argument('obspop', metavar='OBSPOP', help='observed population (csv file)')
     parser.add_argument('-o', metavar='FILE', default='/tmp/plot.svg',
-                        help='output failure rate to %(metavar)s in the specified format')
-                             #'Use any file type supported by matplotlib.')
+                        help='output plot to %(metavar)s (default: /tmp/out.svg)')
     args = parser.parse_args()
     main(args.cumufails, args.obspop, outfile=args.o)
