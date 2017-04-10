@@ -3,14 +3,15 @@
 import csv
 from utils import *
 
-bin_width = 1
+bin_width = 0.25
 samples_per_bin = 20 * bin_width
 bar_fontsize = None
 
 def bar(ax, xs, ys, width, color, label=None, text_f=lambda y: int(np.round(y))):
     ax.bar(xs, ys, width=width, align='edge', color=color, label=label)
-    for x, y in zip(xs, ys):
-        ax.text(x + width/2, y, text_f(y), ha='center', va='bottom', fontsize=bar_fontsize)
+    for i, (x, y) in enumerate(zip(xs, ys)):
+        #if i % 2 == 0:
+            ax.text(x + width/2, y, text_f(y), ha='center', va='bottom', fontsize=bar_fontsize)
 
 def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     # read input files
@@ -30,7 +31,7 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     # plot result
     import matplotlib.pyplot as plt
     fig, (ax1, ax2, ax) = plt.subplots(3, 1, sharex=True)
-    fig.set_size_inches(8, 10)
+    fig.set_size_inches(5.3, 8)
     ax.set_xlim(-0.25, 7.25)
 
     ax1.set_ylabel("# failures")
@@ -39,20 +40,20 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     bar(ax1, fdelta_xs, fdelta_ys, bin_width, color='#cc880088', label='Number of failures in-between')
     ax1.legend()
 
-    ax2.set_ylabel("# observed")
+    ax2.set_ylabel("Disk-years observed")
     ax2.set_yscale("log")
     ax2.set_ylim(90, 1e5)
-    ax2.plot(obs_xs, obs_ys, label='Number of disks observed')
+    #ax2.plot(obs_xs, obs_ys, label='Number of disks observed')
     bar(ax2, disk_hrs_xs, disk_hrs_ys, bin_width, color='#0044ff55', label='Disk-years observed')
-    ax2.legend()
+    #ax2.legend()
 
     ax.set_xlabel("Power-on years")
-    ax.set_ylabel("AFR (#/yr)")
+    ax.set_ylabel("AFR (%)")
     ax.set_yscale("log")
-    ax.set_ylim(1e-3, 2)
-    ax.plot(xs, fr_ys, color='#ff1100')
+    ax.set_ylim(2e-1, 80)
+    #ax.plot(xs, 100*fr_ys, color='#ff1100')
     fr_discrete_ys = fdelta_ys/disk_hrs_ys
-    bar(ax, disk_hrs_xs, fr_discrete_ys, bin_width, color='#ff440055', text_f=lambda y: np.round(y, 3))
+    bar(ax, disk_hrs_xs, 100*fr_discrete_ys, bin_width, color='#ff440055', text_f=lambda y: np.round(y, 1) if y < 10 else int(np.round(y)))
 
     fig.tight_layout()
     fig.savefig(outfile, bbox_inches="tight")
