@@ -19,7 +19,7 @@ def main():
     fig, axh = plt.subplots(1, 1)
     fig.set_size_inches(3.5, 2.3)
 
-    axh.set_ylabel("# disks under observation")
+    axh.set_ylabel("N(t)")
     axh.set_xlabel("Power-on hours")
     axh.set_ylim(0, 4)
     #axh.set_xlim(-2e3, 62e3)
@@ -28,7 +28,28 @@ def main():
     xs, ys = stepify(xs, ys)
     axh.fill_between(xs, ys, color='#0766aa33')
 
-    #fig.tight_layout()
+    fig.savefig(outfile, bbox_inches="tight")
+    print("Written failure rate plot to", outfile)
+
+def main2():
+    import matplotlib.pyplot as plt
+    fig, axh = plt.subplots(1, 1)
+    fig.set_size_inches(3.5, 2.3)
+
+    axh.set_ylabel("N(t)")
+    axh.set_xlabel("Power-on hours")
+    axh.set_ylim(0, 4)
+    xs = [ 0, 400, 560, 1070, 1190 ]
+    ys = [ 0,   1,   0,    1,    0 ]
+    xs, ys = stepify(xs, ys)
+    axh.fill_between(xs, ys, color='#0766aa33', label='Load: 0-1.6 GB/hr')
+
+    xs = [ 0, 570, 730, 900, 1060 ]
+    ys = [ 0,   1,   0,   1,    0 ]
+    xs, ys = stepify(xs, ys)
+    axh.fill_between(xs, ys, color='#aa660733', label='Load: 4-16 GB/hr')
+    axh.legend()
+
     fig.savefig(outfile, bbox_inches="tight")
     print("Written failure rate plot to", outfile)
 
