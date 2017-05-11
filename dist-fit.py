@@ -9,9 +9,9 @@ import numpy as np
 def sample(xs, ys, weights, max_samples=400):
     """ returns sampled xs and ys based on weights """
     probs = weights / np.sum(weights)
-    i = np.sort(np.random.choice(len(xs), max_samples, replace=False, p=probs))
-    xs = xs[i]
-    ys = ys[i]
+    si = np.sort(np.random.choice(len(weights), max_samples, replace=False, p=probs))
+    xs = xs[si]
+    ys = ys[si]
 
     # remove negative entries
     le0i = np.where(ys <= 0) # array of indices
@@ -101,5 +101,7 @@ if __name__ == '__main__':
     parser.add_argument('obspop', metavar='OBSPOP', help='observed population (csv file)')
     parser.add_argument('-o', metavar='FILE', default='/tmp/plot.svg',
                         help='output failure rate plots to %(metavar)s')
+    #parser.add_argument('--type', metavar='TYPE', default='normal',
+    #                    help='type of fitting (choices: normal, log)')
     args = parser.parse_args()
     main(args.cumufails, args.obspop, outfile=args.o)
