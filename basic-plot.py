@@ -1,6 +1,5 @@
 #!/bin/python
 
-import csv
 from utils import read_csv, write_csv, failure_rate
 
 def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', explain=False):
