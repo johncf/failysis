@@ -18,25 +18,26 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', scale='normal'):
     # calculate failure rate
     xs, fr_ys, (_, _, o_ys) = failure_rate((fail_xs, fail_ys), (obs_xs, obs_ys))
 
-    fig, ax = plt.subplots()
-    fig.set_size_inches(8, 4)
+    xs_s, ys_s, o_ys_s = sanitize(xs, fr_ys, o_ys)
+    sig = sigma(o_ys_s)
+
+    fig, (ax, ax2) = plt.subplots(2, 1, sharex=True)
+    fig.set_size_inches(8, 8)
+
+    ax2.set_ylabel("Uncertainty (sigma)")
+    ax2.plot(xs_s, sig)
 
     ax.set_xlabel("Power-on years")
     ax.set_ylabel("AFR (%)")
     ax.set_yscale("log")
     ax.set_ylim(2e-1, 80)
-
-    # sample points from empirical failure rate curve based on observed population
-    # otherwise, all points in our gets equal weightage during fitting
-    xs_s, ys_s = sample(xs, fr_ys, o_ys)
-
-    ax.scatter(xs_s, ys_s*100, marker='.', label='raw sampled')
+    ax.plot(xs_s, ys_s*100, color='#999999', label='raw')
 
     for dist in ['weibull', 'gamma', 'lognorm']:
         if scale == 'normal':
-            params, covars = fit(dist, xs_s, ys_s)
+            params, covars = fit(dist, xs_s, ys_s, sig)
         elif scale == 'log':
-            params, covars = logfit(dist, xs_s, ys_s)
+            params, covars = logfit(dist, xs_s, ys_s, sig)
         else:
             raise ValueError("Invalid scale")
         ys_fit = gen_ys(dist, params, xs)
@@ -46,20 +47,22 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', scale='normal'):
     ax.legend()
     fig.savefig(outfile, bbox_inches="tight")
 
-def sample(xs, ys, weights, max_samples=400):
-    """ returns sampled xs and ys based on weights """
+def sigma(weights):
+    """ returns uncertainties based on weights """
     probs = weights / np.sum(weights)
-    si = np.sort(np.random.choice(len(weights), max_samples, replace=False, p=probs))
-    xs = xs[si]
-    ys = ys[si]
+    sigma = 1 / np.sqrt(probs)
+    return sigma
 
+def sanitize(xs, ys, os):
+    assert(len(xs) == len(ys) and len(xs) == len(os))
     # remove negative entries
     le0i = np.where(ys <= 0) # array of indices
     xs = np.delete(xs, le0i)
     ys = np.delete(ys, le0i)
-    return xs, ys
+    os = np.delete(os, le0i)
+    return xs, ys, os
 
-def logfit(dist, xs, ys):
+def logfit(dist, xs, ys, sig=None):
     """ returns a dictionary of parameters """
     if dist == 'weibull':
         logh = lambda x, c, sc: weibull.logpdf(x, c, scale=sc) - weibull.logsf(x, c, scale=sc)
@@ -69,9 +72,9 @@ def logfit(dist, xs, ys):
         logh = lambda x, s, sc: lognorm.logpdf(x, s, scale=sc) - lognorm.logsf(x, s, scale=sc)
     else:
         raise ValueError("Invalid dist")
-    return curve_fit(logh, xs, np.log(ys))
+    return curve_fit(logh, xs, np.log(ys), sigma=sig)
 
-def fit(dist, xs, ys):
+def fit(dist, xs, ys, sig=None):
     """ returns a dictionary of parameters """
     if dist == 'weibull':
         h = lambda x, c, sc: weibull.pdf(x, c, scale=sc) / weibull.sf(x, c, scale=sc)
@@ -81,7 +84,7 @@ def fit(dist, xs, ys):
         h = lambda x, s, sc: lognorm.pdf(x, s, scale=sc) / lognorm.sf(x, s, scale=sc)
     else:
         raise ValueError("Invalid dist")
-    return curve_fit(h, xs, ys)
+    return curve_fit(h, xs, ys, sigma=sig)
 
 def gen_ys(dist, params, xs):
     """ returns ys corresponding to xs """
