@@ -21,25 +21,25 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', scale='normal'):
     xs_s, ys_s, o_ys_s = sanitize(xs, fr_ys, o_ys)
     sig = sigma(o_ys_s)
 
-    fig, (ax, ax2) = plt.subplots(2, 1, sharex=True)
-    fig.set_size_inches(8, 8)
+    #fig, (ax, ax2) = plt.subplots(2, 1, sharex=True)
+    #fig.set_size_inches(8, 8)
+    #ax2.set_ylabel("Uncertainty (sigma)")
+    #ax2.plot(xs_s, sig)
 
-    ax2.set_ylabel("Uncertainty (sigma)")
-    ax2.plot(xs_s, sig)
+    fig, ax = plt.subplots()
+    fig.set_size_inches(5.3, 3)
 
     ax.set_xlabel("Power-on years")
     ax.set_ylabel("AFR (%)")
-    ax.set_yscale("log")
-    ax.set_ylim(2e-1, 80)
+    if scale == 'log':
+        ax.set_yscale("log")
+        ax.set_ylim(2e-1, 100)
+    else:
+        ax.set_ylim(0, 30)
     ax.plot(xs_s, ys_s*100, color='#999999', label='raw')
 
     for dist in ['weibull', 'gamma', 'lognorm']:
-        if scale == 'normal':
-            params, covars = fit(dist, xs_s, ys_s, sig)
-        elif scale == 'log':
-            params, covars = logfit(dist, xs_s, ys_s, sig)
-        else:
-            raise ValueError("Invalid scale")
+        params, covars = fit(dist, xs_s, ys_s, sig)
         ys_fit = gen_ys(dist, params, xs)
         ax.plot(xs, ys_fit*100, label=dist)
         print(dist, params, np.sqrt(np.diag(covars)))
@@ -61,18 +61,6 @@ def sanitize(xs, ys, os):
     ys = np.delete(ys, le0i)
     os = np.delete(os, le0i)
     return xs, ys, os
-
-def logfit(dist, xs, ys, sig=None):
-    """ returns a dictionary of parameters """
-    if dist == 'weibull':
-        logh = lambda x, c, sc: weibull.logpdf(x, c, scale=sc) - weibull.logsf(x, c, scale=sc)
-    elif dist == 'gamma':
-        logh = lambda x, a, sc: gamma.logpdf(x, a, scale=sc) - gamma.logsf(x, a, scale=sc)
-    elif dist == 'lognorm':
-        logh = lambda x, s, sc: lognorm.logpdf(x, s, scale=sc) - lognorm.logsf(x, s, scale=sc)
-    else:
-        raise ValueError("Invalid dist")
-    return curve_fit(logh, xs, np.log(ys), sigma=sig)
 
 def fit(dist, xs, ys, sig=None):
     """ returns a dictionary of parameters """
