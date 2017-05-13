@@ -6,58 +6,7 @@ from utils import read_csv, write_csv, failure_rate
 import matplotlib.pyplot as plt
 import numpy as np
 
-def sample(xs, ys, weights, max_samples=400):
-    """ returns sampled xs and ys based on weights """
-    probs = weights / np.sum(weights)
-    si = np.sort(np.random.choice(len(weights), max_samples, replace=False, p=probs))
-    xs = xs[si]
-    ys = ys[si]
-
-    # remove negative entries
-    le0i = np.where(ys <= 0) # array of indices
-    xs = np.delete(xs, le0i)
-    ys = np.delete(ys, le0i)
-    return xs, ys
-
-def logfit(dist, xs, ys):
-    """ returns a dictionary of parameters """
-    if dist == 'weibull':
-        f = lambda x, c, sc: weibull.logpdf(x, c, scale=sc) - weibull.logsf(x, c, scale=sc)
-    elif dist == 'gamma':
-        f = lambda x, a, sc: gamma.logpdf(x, a, scale=sc) - gamma.logsf(x, a, scale=sc)
-    elif dist == 'lognorm':
-        f = lambda x, s, sc: lognorm.logpdf(x, s, scale=sc) - lognorm.logsf(x, s, scale=sc)
-    else:
-        raise ValueError("Invalid dist")
-    return curve_fit(f, xs, np.log(ys))
-
-def fit(dist, xs, ys):
-    """ returns a dictionary of parameters """
-    if dist == 'weibull':
-        f = lambda x, c, sc: weibull.pdf(x, c, scale=sc)/weibull.sf(x, c, scale=sc)
-    elif dist == 'gamma':
-        f = lambda x, a, sc: gamma.pdf(x, a, scale=sc)/gamma.sf(x, a, scale=sc)
-    elif dist == 'lognorm':
-        f = lambda x, s, sc: lognorm.pdf(x, s, scale=sc)/lognorm.sf(x, s, scale=sc)
-    else:
-        raise ValueError("Invalid dist")
-    return curve_fit(f, xs, ys)
-
-def gen_plot(dist, params, xs):
-    """ returns ys corresponding to xs """
-    p1 = params[0]
-    sc = params[1]
-    if dist == 'weibull':
-        f = lambda x: weibull.pdf(x, p1, scale=sc)/weibull.sf(x, p1, scale=sc)
-    elif dist == 'gamma':
-        f = lambda x: gamma.pdf(x, p1, scale=sc)/gamma.sf(x, p1, scale=sc)
-    elif dist == 'lognorm':
-        f = lambda x: lognorm.pdf(x, p1, scale=sc)/lognorm.sf(x, p1, scale=sc)
-    else:
-        raise ValueError("Invalid dist")
-    return np.vectorize(f)(xs)
-
-def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
+def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', scale='normal'):
     # read input files
     fail_xs, fail_ys = read_csv(cfails_file)
     obs_xs, obs_ys = read_csv(obspop_file)
@@ -84,13 +33,70 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg'):
     ax.scatter(xs_s, ys_s*100, marker='.', label='raw sampled')
 
     for dist in ['weibull', 'gamma', 'lognorm']:
-        params, covars = fit(dist, xs_s, ys_s)
-        ys_fit = gen_plot(dist, params, xs)
+        if scale == 'normal':
+            params, covars = fit(dist, xs_s, ys_s)
+        elif scale == 'log':
+            params, covars = logfit(dist, xs_s, ys_s)
+        else:
+            raise ValueError("Invalid scale")
+        ys_fit = gen_ys(dist, params, xs)
         ax.plot(xs, ys_fit*100, label=dist)
-        print(dist, params)
+        print(dist, params, np.sqrt(np.diag(covars)))
 
     ax.legend()
     fig.savefig(outfile, bbox_inches="tight")
+
+def sample(xs, ys, weights, max_samples=400):
+    """ returns sampled xs and ys based on weights """
+    probs = weights / np.sum(weights)
+    si = np.sort(np.random.choice(len(weights), max_samples, replace=False, p=probs))
+    xs = xs[si]
+    ys = ys[si]
+
+    # remove negative entries
+    le0i = np.where(ys <= 0) # array of indices
+    xs = np.delete(xs, le0i)
+    ys = np.delete(ys, le0i)
+    return xs, ys
+
+def logfit(dist, xs, ys):
+    """ returns a dictionary of parameters """
+    if dist == 'weibull':
+        logh = lambda x, c, sc: weibull.logpdf(x, c, scale=sc) - weibull.logsf(x, c, scale=sc)
+    elif dist == 'gamma':
+        logh = lambda x, a, sc: gamma.logpdf(x, a, scale=sc) - gamma.logsf(x, a, scale=sc)
+    elif dist == 'lognorm':
+        logh = lambda x, s, sc: lognorm.logpdf(x, s, scale=sc) - lognorm.logsf(x, s, scale=sc)
+    else:
+        raise ValueError("Invalid dist")
+    return curve_fit(logh, xs, np.log(ys))
+
+def fit(dist, xs, ys):
+    """ returns a dictionary of parameters """
+    if dist == 'weibull':
+        h = lambda x, c, sc: weibull.pdf(x, c, scale=sc) / weibull.sf(x, c, scale=sc)
+    elif dist == 'gamma':
+        h = lambda x, a, sc: gamma.pdf(x, a, scale=sc) / gamma.sf(x, a, scale=sc)
+    elif dist == 'lognorm':
+        h = lambda x, s, sc: lognorm.pdf(x, s, scale=sc) / lognorm.sf(x, s, scale=sc)
+    else:
+        raise ValueError("Invalid dist")
+    return curve_fit(h, xs, ys)
+
+def gen_ys(dist, params, xs):
+    """ returns ys corresponding to xs """
+    p1 = params[0]
+    sc = params[1]
+    if dist == 'weibull':
+        f = lambda x: weibull.pdf(x, p1, scale=sc) / weibull.sf(x, p1, scale=sc)
+    elif dist == 'gamma':
+        f = lambda x: gamma.pdf(x, p1, scale=sc) / gamma.sf(x, p1, scale=sc)
+    elif dist == 'lognorm':
+        f = lambda x: lognorm.pdf(x, p1, scale=sc) / lognorm.sf(x, p1, scale=sc)
+    else:
+        raise ValueError("Invalid dist")
+    return np.vectorize(f)(xs)
+
 
 if __name__ == '__main__':
     import argparse
@@ -101,7 +107,7 @@ if __name__ == '__main__':
     parser.add_argument('obspop', metavar='OBSPOP', help='observed population (csv file)')
     parser.add_argument('-o', metavar='FILE', default='/tmp/plot.svg',
                         help='output failure rate plots to %(metavar)s')
-    #parser.add_argument('--type', metavar='TYPE', default='normal',
-    #                    help='type of fitting (choices: normal, log)')
+    parser.add_argument('--scale', metavar='TYPE', default='normal',
+                        help='scale used when fitting (choices: normal, log)')
     args = parser.parse_args()
-    main(args.cumufails, args.obspop, outfile=args.o)
+    main(args.cumufails, args.obspop, outfile=args.o, scale=args.scale)
