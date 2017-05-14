@@ -38,13 +38,17 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', scale='normal'):
     else:
         ax.set_ylim(0, 30)
     norm = cm.PowerNorm(0.5, vmin=0, vmax=np.max(sig))
-    ax.scatter(xs_s, ys_s*100, c=sig, cmap='gray', norm=norm, marker='.', s=0.1, label='raw')
+    ax.scatter(xs_s, ys_s*100, c=sig, cmap='plasma', norm=norm, marker='.', s=0.5, label='raw')
+
+    # for legend
+    #ax.scatter(np.linspace(0.2,0.74,25), 5*np.ones(25), c=np.linspace(0, 1, 25), cmap='plasma', marker='.', s=0.5)
 
     for dist in ['weibull', 'gamma', 'lognorm']:
         params, covars = fit(dist, xs_s, ys_s, sig)
         ys_fit = gen_ys(dist, params, xs)
         ax.plot(xs, ys_fit*100, label=dist)
-        print(dist, params, np.sqrt(np.diag(covars)))
+        err = np.sum(np.square(gen_ys(dist, params, xs_s) - ys_s)/np.square(sig))
+        print(dist, params, np.sqrt(np.diag(covars)), err)
 
     ax.legend()
     fig.savefig(outfile, bbox_inches="tight")
@@ -74,7 +78,7 @@ def fit(dist, xs, ys, sig=None):
         h = lambda x, s, sc: lognorm.pdf(x, s, scale=sc) / lognorm.sf(x, s, scale=sc)
     else:
         raise ValueError("Invalid dist")
-    return curve_fit(h, xs, ys, sigma=sig)
+    return curve_fit(h, xs, ys, p0=[1, np.max(xs)], sigma=sig)
 
 def gen_ys(dist, params, xs):
     """ returns ys corresponding to xs """
