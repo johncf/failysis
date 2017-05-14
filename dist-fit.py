@@ -4,6 +4,7 @@ from scipy.stats import weibull_min as weibull, gamma, lognorm
 from scipy.optimize import curve_fit
 from utils import read_csv, write_csv, failure_rate
 import matplotlib.pyplot as plt
+import matplotlib.colors as cm
 import numpy as np
 
 def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', scale='normal'):
@@ -36,7 +37,8 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', scale='normal'):
         ax.set_ylim(2e-1, 100)
     else:
         ax.set_ylim(0, 30)
-    ax.plot(xs_s, ys_s*100, color='#999999', label='raw')
+    norm = cm.PowerNorm(0.5, vmin=0, vmax=np.max(sig))
+    ax.scatter(xs_s, ys_s*100, c=sig, cmap='gray', norm=norm, marker='.', s=0.1, label='raw')
 
     for dist in ['weibull', 'gamma', 'lognorm']:
         params, covars = fit(dist, xs_s, ys_s, sig)
@@ -49,7 +51,7 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', scale='normal'):
 
 def sigma(weights):
     """ returns uncertainties based on weights """
-    probs = weights / np.sum(weights)
+    probs = weights / np.max(weights)
     sigma = 1 / np.sqrt(probs)
     return sigma
 
