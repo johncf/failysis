@@ -1,4 +1,4 @@
-#!/bin/python
+#!env python3
 
 from utils import read_csv, write_csv, failure_rate
 

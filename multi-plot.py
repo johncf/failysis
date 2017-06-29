@@ -1,4 +1,4 @@
-#!/bin/python
+#!env python3
 
 import matplotlib.pyplot as plt
 import json
@@ -15,9 +15,9 @@ def main(opts_json, plotfile):
     ax.set_ylabel("AFR (%)")
 
     ax.set_xlim(-0.2, 7.2)
-    ax.set_ylim(2e-2, 2e2)
-
-    ax.set_yscale("log")
+    #ax.set_ylim(2e-2, 2e2)
+    #ax.set_yscale("log")
+    ax.set_ylim(0, 40)
 
     for subpop in opts['data']:
         fail_xs, fail_ys = read_csv(subpop['cumu-fails'])

@@ -1,4 +1,4 @@
-#!/bin/python
+#!env python3
 
 import csv
 from utils import *

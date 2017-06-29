@@ -34,7 +34,9 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', scale='normal'):
     ax.set_ylabel("AFR (%)")
     if scale == 'log':
         ax.set_yscale("log")
-        ax.set_ylim(2e-1, 100)
+        ax.set_xscale("log")
+        ax.set_ylim(1e-1, 1e2)
+        ax.set_xlim(1e-1, 20)
     else:
         ax.set_ylim(0, 30)
     norm = cm.PowerNorm(0.5, vmin=0, vmax=np.max(sig))
@@ -45,8 +47,9 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', scale='normal'):
 
     for dist in ['weibull', 'gamma', 'lognorm']:
         params, covars = fit(dist, xs_s, ys_s, sig)
-        ys_fit = gen_ys(dist, params, xs)
-        ax.plot(xs, ys_fit*100, label=dist)
+        xs_fit = np.linspace(0, 20, 1000)
+        ys_fit = gen_ys(dist, params, xs_fit)
+        ax.plot(xs_fit, ys_fit*100, label=dist)
         err = np.sum(np.square(gen_ys(dist, params, xs_s) - ys_s)/np.square(sig))
         print(dist, params, np.sqrt(np.diag(covars)), err)
 
