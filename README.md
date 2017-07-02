@@ -21,3 +21,6 @@ In the above examples,
   points of age (in power-on hours).
 - `long.json` is a json file describing the locations of these data files for
   various populations. An example is included in this repository.
+
+SQL queries for generating `cumu-fails` and `obs-pop` with various filters from
+disk activity and failure logs are provided in the [`sql`][./sql] directory.
