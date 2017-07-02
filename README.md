@@ -23,4 +23,4 @@ In the above examples,
   various populations. An example is included in this repository.
 
 SQL queries for generating `cumu-fails` and `obs-pop` with various filters from
-disk activity and failure logs are provided in the [`sql`][./sql] directory.
+disk activity and failure logs are provided in the [`sql`](./sql) directory.
