@@ -31,6 +31,8 @@ FROM (SELECT power_hrs, COUNT(dl.serial_no) AS disk_count
            ON dl.serial_no = df.serial_no AND
               dl.datestamp = df.datestamp -- under the assumption that a corresponding activity log exists for every failure log
       GROUP BY power_hrs) AS cu
+-- export the results as csv with no header line and ',' as separator
+-- also remove lines that exceed power-on hours well above 60,000
 
 -- observed population over power_hrs -- N(t)
 WITH cgs AS (SELECT power_hrs,
@@ -46,6 +48,7 @@ WITH cgs AS (SELECT power_hrs,
 SELECT power_hrs,
        SUM(contrib_group) OVER (ORDER BY power_hrs) AS observed_pop
 FROM cgs
+-- export and clean-up as for C(t)
 
 -- sanity check: max_power_hrs vs last seen power_hrs
 SELECT ds.serial_no, ds.last_seen, dl.power_hrs AS last_power_hrs, ds.max_power_hrs -- COUNT(DISTINCT ds.serial_no)
