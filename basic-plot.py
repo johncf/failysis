@@ -42,7 +42,7 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', explai
     ax.set_xlabel("Power-on years")
     ax.set_ylabel("AFR (%)")
     ax.set_yscale("log")
-    ax.set_ylim(2e-1, 80)
+    ax.set_ylim(2e-1, 100)
     ax.plot(xs, fr_ys*100)
 
     fig.tight_layout()
