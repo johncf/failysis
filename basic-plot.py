@@ -45,7 +45,11 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', explai
     ax.set_ylim(2e-1, 100)
     ax.plot(xs, fr_ys*100)
 
+    #st = fig.suptitle("Model: ABCDEFGH")
     fig.tight_layout()
+    #st.set_y(0.95)
+    #fig.subplots_adjust(top=0.9)
+
     fig.savefig(outfile, bbox_inches="tight")
     print("Written failure rate plot to", outfile)
 
