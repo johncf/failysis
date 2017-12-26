@@ -25,24 +25,22 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', explai
     #from mpl_toolkits.axes_grid1 import host_subplot
     #import mpl_toolkits.axisartist as AA
     if explain:
-        fig, (ax2, ax) = plt.subplots(2, 1, sharex=True)
-        fig.set_size_inches(5.3, 6)
+        fig, (ax2, ax) = plt.subplots(2, 1, sharex=True, figsize=(6, 6.6))
 
         #ax2.set_ylabel("")
-        ax2.set_xlabel("Power-on years")
+        #ax2.set_xlabel("Power-on years")
         ax2.set_yscale("log")
         ax2.set_ylim(2, 2e6)
-        ax2.plot(xs, f_dydxs, 'r-', label="Derivative of cumulative failures (#/yr)")
-        ax2.fill_between(xs, o_ys, 1, color='#0766aa33', label="Number of disks under observation")
+        ax2.plot(xs, f_dydxs, 'r-', label="d/dt of cumulative failures (#/yr)")
+        ax2.fill_between(xs, o_ys, 1, color='#0766aa33', label="# disks under observation")
         ax2.legend()
     else:
-        fig, ax = plt.subplots()
-        fig.set_size_inches(8, 4)
+        fig, ax = plt.subplots(figsize=(8, 4))
 
-    ax.set_xlabel("Power-on years")
-    ax.set_ylabel("AFR (%)")
-    ax.set_yscale("log")
-    ax.set_ylim(2e-1, 100)
+    ax.set_xlabel("Age (power-on years)")
+    ax.set_ylabel("AFR (%/year)")
+    #ax.set_yscale("log")
+    ax.set_ylim(0, 16)
     ax.plot(xs, fr_ys*100)
 
     #st = fig.suptitle("Model: ABCDEFGH")
