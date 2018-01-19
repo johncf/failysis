@@ -1,4 +1,4 @@
-#!env python3
+#!/bin/env python3
 
 import matplotlib.pyplot as plt
 import json

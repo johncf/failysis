@@ -89,7 +89,7 @@ def savgol_fit(xs, ys, samples, window_size, poly_order, x_lims=None, dydx=False
 
     return xs_new, ys_sg, dydx_sg
 
-def failure_rate(cfails, obspop, num_samples=2000, window_size=169, poly_order=3):
+def failure_rate(cfails, obspop, num_samples=2000, window_size=111, poly_order=1):
     cfails_xs, cfails_ys = cfails
     obspop_xs, obspop_ys = obspop
     x_lims = shortest_common_limits(cfails_xs, obspop_xs)

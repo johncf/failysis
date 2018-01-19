@@ -1,4 +1,4 @@
-#!env python3
+#!/bin/env python3
 
 from scipy.stats import weibull_min as weibull, gamma, lognorm
 from scipy.optimize import curve_fit

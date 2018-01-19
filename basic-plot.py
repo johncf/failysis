@@ -1,8 +1,8 @@
-#!env python3
+#!/bin/env python3
 
 from utils import read_csv, write_csv, failure_rate
 
-def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', explain=False):
+def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', title='', explain=False):
     # read input files
     fail_xs, fail_ys = read_csv(cfails_file)
     obs_xs, obs_ys = read_csv(obspop_file)
@@ -43,10 +43,11 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', explai
     ax.set_ylim(0, 16)
     ax.plot(xs, fr_ys*100)
 
-    #st = fig.suptitle("Model: ABCDEFGH")
     fig.tight_layout()
-    #st.set_y(0.95)
-    #fig.subplots_adjust(top=0.9)
+    if len(title) > 0:
+        st = fig.suptitle(title)
+        st.set_y(0.95)
+        fig.subplots_adjust(top=0.9)
 
     fig.savefig(outfile, bbox_inches="tight")
     print("Written failure rate plot to", outfile)
@@ -63,7 +64,8 @@ if __name__ == '__main__':
                              #'Use any file type supported by matplotlib.')
     parser.add_argument('-t', metavar='TYPE', choices=['csv', 'image'], default='image',
                         help='output type (default: image)')
+    parser.add_argument('-T', metavar='TITLE', default='', help='Plot title')
     parser.add_argument('-x', '--explain', action='store_true',
                         help='include intermediate steps in the plot')
     args = parser.parse_args()
-    main(args.cumufails, args.obspop, outfile=args.o, type_=args.t, explain=args.explain)
+    main(args.cumufails, args.obspop, outfile=args.o, type_=args.t, title=args.T, explain=args.explain)
