@@ -12,6 +12,9 @@ def read_csv(csvfile):
         if has_header:
             next(reader)  # skip header row
         for row in reader:
+            if not row[0] or not row[1]:
+                print("Ignoring row containing empty value:", row)
+                continue
             xs.append(float(row[0]))
             ys.append(float(row[1]))
     return np.array(xs), np.array(ys)
