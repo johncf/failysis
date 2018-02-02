@@ -1,11 +1,12 @@
 #!/bin/env python3
 
-from utils import read_csv, write_csv, failure_rate
+from utils import read_csv, write_csv, failure_rate, useful_obs, expand_fails
 
 def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', title='', explain=False, ymax=16):
     # read input files
     fail_xs, fail_ys = read_csv(cfails_file)
-    obs_xs, obs_ys = read_csv(obspop_file)
+    obs_xs, obs_ys = useful_obs(*read_csv(obspop_file))
+    fail_xs, fail_ys = expand_fails(fail_xs, fail_ys, obs_xs[0], obs_xs[-1])
 
     # power-on hours to power-on years
     fail_xs /= 24*365
@@ -35,14 +36,16 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', title=
         ax2.plot(xs, f_dydxs, 'crimson', label="rate of failures (disks/yr)")
         ax2.fill_between(xs, o_ys, 1, color='#0766aa33', label="disks observed")
         ax2.legend()
+        ax2.grid(True, axis='x')
     else:
         fig, ax = plt.subplots(figsize=(8, 4))
 
     ax.set_xlabel("Age (power-on years)")
     ax.set_ylabel("Failure Rate (%/year)")
     #ax.set_yscale("log")
-    ax.set_ylim(0, ymax)
     ax.plot(xs, fr_ys*100, 'chocolate')
+    ax.set_ylim(0, ymax)
+    ax.grid(True, axis='x')
 
     fig.tight_layout()
     if len(title) > 0:

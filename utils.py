@@ -25,6 +25,19 @@ def write_csv(xs, ys, csvfile):
         for row in zip(xs, ys):
             writer.writerow(row)
 
+def useful_obs(obs_xs, obs_ys):
+    oimin, oimax = np.argmax(obs_ys >= 20), len(obs_ys) - np.argmax(obs_ys[::-1] >= 20)
+    return obs_xs[oimin:oimax], obs_ys[oimin:oimax]
+
+def expand_fails(fail_xs, fail_ys, xmin, xmax):
+    if fail_xs[0] > xmin:
+        fail_xs = np.insert(fail_xs, 0, xmin)
+        fail_ys = np.insert(fail_ys, 0, 0)
+    if fail_xs[-1] < xmax:
+        fail_xs = np.append(fail_xs, xmax)
+        fail_ys = np.append(fail_ys, fail_ys[-1])
+    return fail_xs, fail_ys
+
 def shortest_common_limits(xs1, xs2):
     return max(xs1.min(), xs2.min()), min(xs1.max(), xs2.max())
 

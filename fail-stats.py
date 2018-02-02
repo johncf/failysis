@@ -1,22 +1,26 @@
 #!/bin/env python3
 
-from numpy import trapz
-from utils import read_csv
+from numpy import mean, trapz
+from utils import read_csv, useful_obs
 
 def main(fails, obspop, minimal=False):
     # read input file
-    obs_xs, obs_ys = read_csv(obspop)
+    obs_xs, obs_ys = useful_obs(*read_csv(obspop))
     diskyears = trapz(obs_ys, x=obs_xs/24/365)
     with open(fails, 'rb') as f:
         f.seek(-20, 2)
         failcount = int(f.readlines()[-1].decode().split(',')[1])
     mean_afr = failcount/diskyears*100
+    mean_dct = mean(obs_ys)
+    useful_len = (obs_xs[-1] - obs_xs[0])/24/365
     if minimal:
-        print("{:.0f} {} {:.2f}%".format(diskyears, failcount, mean_afr))
+        print("{:.0f} {} {:.2f}% {:.2f} {:.0f}".format(diskyears, failcount, mean_afr, useful_len, mean_dct))
     else:
         print("Total disk-years:", diskyears)
         print("Total failures:", failcount)
         print("Mean AFR: {}%".format(mean_afr))
+        print("Useful length of observation:", useful_len)
+        print("Mean number of disks over useful length:", mean_dct)
 
 if __name__ == '__main__':
     import argparse
