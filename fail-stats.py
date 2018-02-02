@@ -1,6 +1,7 @@
 #!/bin/env python3
 
-from numpy import mean, trapz
+from numpy import mean, trapz, linspace
+from scipy.interpolate import interp1d
 from utils import read_csv, useful_obs
 
 def main(fails, obspop, minimal=False):
@@ -11,7 +12,9 @@ def main(fails, obspop, minimal=False):
         f.seek(-20, 2)
         failcount = int(f.readlines()[-1].decode().split(',')[1])
     mean_afr = failcount/diskyears*100
-    mean_dct = mean(obs_ys)
+    obs_itp = interp1d(obs_xs, obs_ys, kind="linear")
+    obs_linxs = linspace(obs_xs[0], obs_xs[-1], num=len(obs_xs))
+    mean_dct = mean([obs_itp(x) for x in obs_linxs])
     useful_len = (obs_xs[-1] - obs_xs[0])/24/365
     if minimal:
         print("{:.0f} {} {:.2f}% {:.2f} {:.0f}".format(diskyears, failcount, mean_afr, useful_len, mean_dct))
