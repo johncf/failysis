@@ -16,7 +16,7 @@ def main(fails, obspop, minimal=False):
     else:
         print("Total disk-years:", diskyears)
         print("Total failures:", failcount)
-        print("Mean AFR:", mean_afr)
+        print("Mean AFR: {}%".format(mean_afr))
 
 if __name__ == '__main__':
     import argparse

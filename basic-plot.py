@@ -25,23 +25,24 @@ def main(cfails_file, obspop_file, outfile='/tmp/plot.svg', type_='plot', title=
     #from mpl_toolkits.axes_grid1 import host_subplot
     #import mpl_toolkits.axisartist as AA
     if explain:
-        fig, (ax2, ax) = plt.subplots(2, 1, sharex=True, figsize=(6, 6.6))
+        fig, (ax2, ax) = plt.subplots(2, 1, sharex=True, figsize=(7, 6),
+                                      gridspec_kw={'height_ratios': [3, 4]})
 
         #ax2.set_ylabel("")
         #ax2.set_xlabel("Power-on years")
         ax2.set_yscale("log")
         ax2.set_ylim(2, 2e6)
-        ax2.plot(xs, f_dydxs, 'r-', label="rate of failures (disks/yr)")
+        ax2.plot(xs, f_dydxs, 'crimson', label="rate of failures (disks/yr)")
         ax2.fill_between(xs, o_ys, 1, color='#0766aa33', label="disks observed")
         ax2.legend()
     else:
         fig, ax = plt.subplots(figsize=(8, 4))
 
     ax.set_xlabel("Age (power-on years)")
-    ax.set_ylabel("AFR (%/year)")
+    ax.set_ylabel("Failure Rate (%/year)")
     #ax.set_yscale("log")
     ax.set_ylim(0, ymax)
-    ax.plot(xs, fr_ys*100)
+    ax.plot(xs, fr_ys*100, 'chocolate')
 
     fig.tight_layout()
     if len(title) > 0:
