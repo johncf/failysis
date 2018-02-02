@@ -105,10 +105,13 @@ def savgol_fit(xs, ys, samples, window_size, poly_order, x_lims=None, dydx=False
 
     return xs_new, ys_sg, dydx_sg
 
-def failure_rate(cfails, obspop, num_samples=2000, window_size=111, poly_order=1):
+def failure_rate(cfails, obspop, num_samples=2000, window_size=111, poly_order=1, window_size_in_x=False):
     cfails_xs, cfails_ys = cfails
     obspop_xs, obspop_ys = obspop
     x_lims = shortest_common_limits(cfails_xs, obspop_xs)
+    if window_size_in_x:
+        from math import ceil
+        window_size = ceil(num_samples*window_size/(x_lims[1] - x_lims[0])/2)*2+1
 
     f_xs, f_ys, f_dydxs = savgol_fit(cfails_xs, cfails_ys, num_samples, window_size, poly_order, x_lims, dydx=True)
     o_xs, o_ys, _ = savgol_fit(obspop_xs, obspop_ys, num_samples, window_size, poly_order, x_lims, dydx=False)
@@ -117,4 +120,5 @@ def failure_rate(cfails, obspop, num_samples=2000, window_size=111, poly_order=1
     assert np.array_equal(f_xs, o_xs)
 
     fr_ys = f_dydxs/o_ys # element-wise division
-    return f_xs, fr_ys, (f_ys, f_dydxs, o_ys)
+    lim = int(window_size/2)
+    return f_xs[lim:-lim], fr_ys[lim:-lim], (f_ys[lim:-lim], f_dydxs[lim:-lim], o_ys[lim:-lim])
